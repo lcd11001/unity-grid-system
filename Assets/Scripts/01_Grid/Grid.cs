@@ -1,14 +1,29 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Grid
 {
+    public event EventHandler<OnGridValueChangedEventArgs> OnGridValueChanged;
+    public class OnGridValueChangedEventArgs: EventArgs
+    {
+        public int x;
+        public int y;
+        public int prevValue;
+        public int currValue;
+    }
+
     private int width, height;
     private float cellSize;
     private int[,] gridArray;
     private TextMesh[,] debugTextArray;
     private Vector3 originPosition;
+
+    public int Width => width;
+    public int Height => height;
+    public float CellSize => cellSize;
+    public Vector3 OriginPosition => originPosition;
 
     public Grid(int width, int height, float cellSize, Vector3 originPosition)
     {
@@ -35,12 +50,12 @@ public class Grid
         Debug.DrawLine(GetWorldPostiton(width, 0), GetWorldPostiton(width, height), Color.white, 100f);
     }
 
-    private Vector3 GetWorldPostiton(int x, int y)
+    public Vector3 GetWorldPostiton(int x, int y)
     {
         return new Vector3(x, y) * this.cellSize + originPosition;
     }
 
-    private void GetXY(Vector3 worldPosition, out int x, out int y)
+    public void GetXY(Vector3 worldPosition, out int x, out int y)
     {
         x = Mathf.FloorToInt((worldPosition - originPosition).x / cellSize);
         y = Mathf.FloorToInt((worldPosition - originPosition).y / cellSize);
@@ -50,8 +65,14 @@ public class Grid
     {
         if (x >= 0 && x < width && y >= 0 && y < height)
         {
+            int prevValue = gridArray[x, y];
             gridArray[x, y] = value;
             debugTextArray[x, y].text = gridArray[x, y].ToString();
+
+            if (OnGridValueChanged != null)
+            {
+                OnGridValueChanged(this, new OnGridValueChangedEventArgs { x = x, y = y, prevValue = prevValue, currValue = value });
+            }
         }
     }
 
