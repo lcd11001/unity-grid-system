@@ -368,6 +368,7 @@ MonoBehaviour:
   gridWidth: 10
   gridHeight: 5
   cellSize: 10
+  originPosition: {x: 20, y: 0, z: 0}
 --- !u!4 &475360442
 Transform:
   m_ObjectHideFlags: 0
