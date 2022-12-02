@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(MeshFilter))]
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class HeatMapVisual : MonoBehaviour
 {
     [SerializeField] private int gridWidth;
@@ -25,6 +25,7 @@ public class HeatMapVisual : MonoBehaviour
 
         mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;
+        updateMesh = true;
     }
 
     private void OnDestroy()
@@ -37,8 +38,9 @@ public class HeatMapVisual : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             Vector3 mousePos = UtilsClass.GetMouseWorldPosition();
-            int value = grid.GetValue(mousePos);
-            grid.SetValue(mousePos, Mathf.Clamp(value + 5, HEAT_MAP_MIN_VALUE, HEAT_MAP_MAX_VALUE));
+            //int value = grid.GetValue(mousePos);
+            //grid.SetValue(mousePos, Mathf.Clamp(value + 5, HEAT_MAP_MIN_VALUE, HEAT_MAP_MAX_VALUE));
+            AddValue(mousePos, 5, 5);
         }
     }
 
@@ -58,6 +60,62 @@ public class HeatMapVisual : MonoBehaviour
 
     private void UpdateHeatMapVisual()
     {
+        MeshUtils.CreateEmptyMeshArrays(grid.Width * grid.Height, out Vector3[] vertices, out Vector2[] uvs, out int[] triangles);
 
+        Vector3 quadSize = new Vector3(1, 1) * grid.CellSize;
+        for (int x = 0; x < grid.Width; x++)
+        {
+            for (int y = 0; y < grid.Height; y++)
+            {
+                int index = y * grid.Width + x;
+                int value = grid.GetValue(x, y);
+                float nomalize = (float)value / HEAT_MAP_MAX_VALUE;
+                Vector2 valueUV = new Vector2(nomalize, 0f);
+                MeshUtils.AddToMeshArrays(vertices, uvs, triangles, index, grid.GetWorldPostiton(x, y) + quadSize * 0.5f, 0f, quadSize, valueUV, valueUV);
+            }
+        }
+
+        mesh.vertices = vertices;
+        mesh.uv = uvs;
+        mesh.triangles = triangles;
+    }
+
+    private void AddValue(Vector3 worldPosition, int value, int range)
+    {
+        grid.GetXY(worldPosition, out int originX, out int originY);
+
+        // making diamond shape
+        for (int x = 0; x < range; x++)
+        {
+            for (int y = 0; y < range - x; y++)
+            {
+                // origin triangle
+                AddValue(originX + x, originY + y, value);
+
+                if (x != 0)
+                {
+                    // mirror to left & ignore duplicate
+                    AddValue(originX - x, originY + y, value);
+                }
+
+                if (y != 0)
+                {
+                    // mirror right-bottom & ignore duplicate
+                    AddValue(originX + x, originY - y, value);
+
+                    if (x != 0)
+                    {
+                        // mirror left-bottom & ignore duplicate
+                        AddValue(originX - x, originY - y, value);
+                    }
+                }
+            }
+        }
+    }
+
+    private void AddValue(int x, int y, int value)
+    {
+        int newValue = grid.GetValue(x, y) + value;
+        grid.SetValue(x, y, Mathf.Clamp(newValue, HEAT_MAP_MIN_VALUE, HEAT_MAP_MAX_VALUE));
     }
 }

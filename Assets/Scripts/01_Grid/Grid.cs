@@ -25,7 +25,7 @@ public class Grid<T>
     public int Height => height;
     public float CellSize => cellSize;
     public Vector3 OriginPosition => originPosition;
-    public bool ShowDebug { get; set; } = true;
+    public bool ShowDebug { get; set; } = false;
 
     public Grid(int width, int height, float cellSize, Vector3 originPosition)
     {
@@ -111,44 +111,4 @@ public class Grid<T>
         GetXY(worldPosition, out x, out y);
         return GetValue(x, y, defaultValue);
     }
-
-    /*
-    public void AddValue(Vector3 worldPosition, int value, int fullValueRange, int totalRange)
-    {
-        int lowerValueAmount = Mathf.RoundToInt((float)value / (totalRange - fullValueRange));
-
-        GetXY(worldPosition, out int originX, out int originY);
-        for (int x=0; x<totalRange; x++)
-        {
-            for (int y=0; y<totalRange; y++)
-            {
-                int radius = x + y;
-                int addValueAmount = value;
-                if (radius >= fullValueRange)
-                {
-                    addValueAmount -= lowerValueAmount * (radius - fullValueRange);
-                }
-
-                AddValue(originX + x, originY + y, addValueAmount);
-
-                if (x != 0)
-                {
-                    AddValue(originX - x, originY + y, addValueAmount);
-                }
-                if (y != 0)
-                {
-                    AddValue(originX + x, originY - y, addValueAmount);
-                    if (x != 0)
-                    {
-                        AddValue(originX - x, originY - y, addValueAmount);
-                    }
-                }
-            }
-        }
-    }
-
-    public void AddValue(int x, int y, int addValueAmount)
-    {
-    }
-    */
 }
