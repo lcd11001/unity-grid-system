@@ -1,3 +1,4 @@
+using CodeMonkey.Utils;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,12 +23,12 @@ public class TestingGrid : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            grid.SetValue(Utils.GetMouseWorldPosition(), 99);
+            grid.SetValue(UtilsClass.GetMouseWorldPosition(), 99);
         }
 
         if (Input.GetMouseButtonDown(1))
         {
-            Debug.Log(grid.GetValue(Utils.GetMouseWorldPosition()));
+            Debug.Log(grid.GetValue(UtilsClass.GetMouseWorldPosition()));
         }
     }
 
