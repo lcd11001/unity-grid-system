@@ -24,6 +24,7 @@ public class Grid<T>
     public int Height => height;
     public float CellSize => cellSize;
     public Vector3 OriginPosition => originPosition;
+    public bool ShowDebug { get; set; } = true;
 
     public Grid(int width, int height, float cellSize, Vector3 originPosition)
     {
@@ -32,9 +33,12 @@ public class Grid<T>
         this.cellSize = cellSize;
         this.originPosition = originPosition;
         this.gridArray = new T[width, height];
-        this.debugTextArray = new TextMesh[width, height];
 
-        DebugGrid();
+        if (ShowDebug)
+        {
+            this.debugTextArray = new TextMesh[width, height];
+            DebugGrid();
+        }
     }
 
     public virtual void DebugGrid()
@@ -71,7 +75,11 @@ public class Grid<T>
         {
             T prevValue = gridArray[x, y];
             gridArray[x, y] = value;
-            debugTextArray[x, y].text = gridArray[x, y].ToString();
+            
+            if (ShowDebug)
+            {
+                debugTextArray[x, y].text = gridArray[x, y].ToString();
+            }
 
             if (OnGridValueChanged != null)
             {
