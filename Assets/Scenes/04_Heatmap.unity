@@ -238,7 +238,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!1 &422973415
+--- !u!1 &641129721
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -246,38 +246,47 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 422973417}
-  - component: {fileID: 422973416}
+  - component: {fileID: 641129724}
+  - component: {fileID: 641129723}
+  - component: {fileID: 641129722}
   m_Layer: 0
-  m_Name: TestingGrid
+  m_Name: Heat Map Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &422973416
+--- !u!114 &641129722
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 422973415}
+  m_GameObject: {fileID: 641129721}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92ccf4e6d7b248b4cbab3c13dd26b716, type: 3}
+  m_Script: {fileID: 11500000, guid: 5e6d1dabd028260408d290fd2c1c5e53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridWidth: 10
-  gridHeight: 5
-  cellSize: 10
-  originPosition: {x: -50, y: -25, z: 0}
---- !u!4 &422973417
+  gridWidth: 20
+  gridHeight: 10
+  gridSize: 10
+  gridOriginal: {x: -100, y: -50, z: 0}
+--- !u!33 &641129723
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 641129721}
+  m_Mesh: {fileID: 0}
+--- !u!4 &641129724
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 422973415}
+  m_GameObject: {fileID: 641129721}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
