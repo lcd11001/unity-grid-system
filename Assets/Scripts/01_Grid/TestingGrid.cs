@@ -9,11 +9,11 @@ public class TestingGrid : MonoBehaviour
     [SerializeField] private float cellSize;
     [SerializeField] private Vector3 originPosition;
 
-    private Grid grid;
+    private Grid<int> grid;
 
     void Start()
     {
-        grid = new Grid(gridWidth, gridHeight, cellSize, originPosition);
+        grid = new Grid<int>(gridWidth, gridHeight, cellSize, originPosition);
 
         grid.SetValue(2, 1, 56);
     }

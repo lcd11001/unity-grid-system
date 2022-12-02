@@ -3,20 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Grid
+public class Grid<T>
 {
     public event EventHandler<OnGridValueChangedEventArgs> OnGridValueChanged;
     public class OnGridValueChangedEventArgs: EventArgs
     {
         public int x;
         public int y;
-        public int prevValue;
-        public int currValue;
+        public T prevValue;
+        public T currValue;
     }
 
     private int width, height;
     private float cellSize;
-    private int[,] gridArray;
+    private T[,] gridArray;
     private TextMesh[,] debugTextArray;
     private Vector3 originPosition;
 
@@ -31,11 +31,15 @@ public class Grid
         this.height = height;
         this.cellSize = cellSize;
         this.originPosition = originPosition;
-        this.gridArray = new int[width, height];
+        this.gridArray = new T[width, height];
         this.debugTextArray = new TextMesh[width, height];
 
-        Vector3 offset = new Vector3(cellSize, cellSize) * 0.5f;
+        DebugGrid();
+    }
 
+    public virtual void DebugGrid()
+    {
+        Vector3 offset = new Vector3(cellSize, cellSize) * 0.5f;
         for (int x = 0, w = gridArray.GetLength(0); x < w; x++)
         {
             for (int y = 0, h = gridArray.GetLength(1); y < h; y++)
@@ -61,11 +65,11 @@ public class Grid
         y = Mathf.FloorToInt((worldPosition - originPosition).y / cellSize);
     }
 
-    public void SetValue(int x, int y, int value)
+    public void SetValue(int x, int y, T value)
     {
         if (x >= 0 && x < width && y >= 0 && y < height)
         {
-            int prevValue = gridArray[x, y];
+            T prevValue = gridArray[x, y];
             gridArray[x, y] = value;
             debugTextArray[x, y].text = gridArray[x, y].ToString();
 
@@ -76,14 +80,14 @@ public class Grid
         }
     }
 
-    public void SetValue(Vector3 worldPosition, int value)
+    public void SetValue(Vector3 worldPosition, T value)
     {
         int x, y;
         GetXY(worldPosition, out x, out y);
         SetValue(x, y, value);
     }
 
-    public int GetValue(int x, int y, int defaultValue = 0)
+    public T GetValue(int x, int y, T defaultValue = default(T))
     {
         if (x >= 0 && x < width && y >= 0 && y < height)
         {
@@ -92,10 +96,50 @@ public class Grid
         return defaultValue;
     }
 
-    public int GetValue(Vector3 worldPosition, int defaultValue = 0)
+    public T GetValue(Vector3 worldPosition, T defaultValue = default(T))
     {
         int x, y;
         GetXY(worldPosition, out x, out y);
         return GetValue(x, y, defaultValue);
     }
+
+    /*
+    public void AddValue(Vector3 worldPosition, int value, int fullValueRange, int totalRange)
+    {
+        int lowerValueAmount = Mathf.RoundToInt((float)value / (totalRange - fullValueRange));
+
+        GetXY(worldPosition, out int originX, out int originY);
+        for (int x=0; x<totalRange; x++)
+        {
+            for (int y=0; y<totalRange; y++)
+            {
+                int radius = x + y;
+                int addValueAmount = value;
+                if (radius >= fullValueRange)
+                {
+                    addValueAmount -= lowerValueAmount * (radius - fullValueRange);
+                }
+
+                AddValue(originX + x, originY + y, addValueAmount);
+
+                if (x != 0)
+                {
+                    AddValue(originX - x, originY + y, addValueAmount);
+                }
+                if (y != 0)
+                {
+                    AddValue(originX + x, originY - y, addValueAmount);
+                    if (x != 0)
+                    {
+                        AddValue(originX - x, originY - y, addValueAmount);
+                    }
+                }
+            }
+        }
+    }
+
+    public void AddValue(int x, int y, int addValueAmount)
+    {
+    }
+    */
 }
