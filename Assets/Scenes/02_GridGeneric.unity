@@ -251,7 +251,7 @@ GameObject:
   - component: {fileID: 641129725}
   - component: {fileID: 641129726}
   m_Layer: 0
-  m_Name: Heat Map Visual
+  m_Name: Heat Map Visual Generic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

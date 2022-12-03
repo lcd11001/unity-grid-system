@@ -1,4 +1,5 @@
 using CodeMonkey.Utils;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,17 +15,18 @@ public class HeatMapVisualGeneric : MonoBehaviour
     public const int HEAT_MAP_MAX_VALUE = 100;
     public const int HEAT_MAP_MIN_VALUE = 0;
 
-    private Grid<bool> grid;
+    private Grid<HeatMapGridObject> grid;
     private Mesh mesh;
     private bool updateMesh;
 
     private void Awake()
     {
         //grid = new Grid<int>(gridWidth, gridHeight, gridSize, gridOriginal);
-        grid = Grid<bool>.CreateGrid()
+        grid = Grid<HeatMapGridObject>.CreateGrid()
             .WithGridSize(gridWidth, gridHeight)
             .WithCellSize(gridSize)
             .WithOriginalPosition(gridOriginal)
+            .WithCreateGridObject(() => new HeatMapGridObject())
             .WithDebug(true);
         grid.OnGridValueChanged += Grid_OnGridValueChanged;
 
@@ -43,11 +45,7 @@ public class HeatMapVisualGeneric : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             Vector3 mousePos = UtilsClass.GetMouseWorldPosition();
-            //int value = grid.GetValue(mousePos);
-            //grid.SetValue(mousePos, Mathf.Clamp(value + 5, HEAT_MAP_MIN_VALUE, HEAT_MAP_MAX_VALUE));
-
-            AddValue(mousePos, true, 5);
-            //AddValueRange(mousePos, true, 3, 10);
+            AddValue(mousePos, 5, 1);
         }
     }
 
@@ -60,9 +58,10 @@ public class HeatMapVisualGeneric : MonoBehaviour
         }
     }
 
-    private void Grid_OnGridValueChanged(object sender, Grid<bool>.OnGridValueChangedEventArgs e)
+    private void Grid_OnGridValueChanged(object sender, Grid<HeatMapGridObject>.OnGridValueChangedEventArgs e)
     {
         updateMesh = true;
+        Debug.Log($"OnGridValueChanged {e.x}:{e.y} prev {e.prevValue.ToString()} cur {e.currValue.ToString()}");
     }
 
     private void UpdateHeatMapVisual()
@@ -75,8 +74,8 @@ public class HeatMapVisualGeneric : MonoBehaviour
             for (int y = 0; y < grid.Height; y++)
             {
                 int index = y * grid.Width + x;
-                bool value = grid.GetValue(x, y);
-                float nomalize = value ? 1f : 0f;
+                HeatMapGridObject gridValue = grid.GetValue(x, y);
+                float nomalize = gridValue != null ? gridValue.GetValueNormalize() : 0f;
                 Vector2 valueUV = new Vector2(nomalize, 0f);
                 MeshUtils.AddToMeshArrays(vertices, uvs, triangles, index, grid.GetWorldPostiton(x, y) + quadSize * 0.5f, 0f, quadSize, valueUV, valueUV);
             }
@@ -87,8 +86,9 @@ public class HeatMapVisualGeneric : MonoBehaviour
         mesh.triangles = triangles;
     }
 
-    private void AddValueRange(Vector3 worldPosition, bool value, int fullValueRange, int totalRange)
+    private void AddValueRange(Vector3 worldPosition, int value, int fullValueRange, int totalRange)
     {
+        int lowerValueAmount = Mathf.RoundToInt((float)value / (totalRange - fullValueRange));
         grid.GetXY(worldPosition, out int originX, out int originY);
 
         // making diamond shape
@@ -97,10 +97,10 @@ public class HeatMapVisualGeneric : MonoBehaviour
             for (int y = 0; y < totalRange - x; y++)
             {
                 int radius = x + y;
-                bool addValueAmount = value;
+                int addValueAmount = value;
                 if (radius > fullValueRange)
                 {
-                    addValueAmount = !addValueAmount;
+                    addValueAmount -= lowerValueAmount * (radius - fullValueRange);
                 }
 
                 // origin triangle
@@ -127,7 +127,7 @@ public class HeatMapVisualGeneric : MonoBehaviour
         }
     }
 
-    private void AddValue(Vector3 worldPosition, bool value, int range)
+    private void AddValue(Vector3 worldPosition, int value, int range)
     {
         grid.GetXY(worldPosition, out int originX, out int originY);
 
@@ -160,8 +160,50 @@ public class HeatMapVisualGeneric : MonoBehaviour
         }
     }
 
-    private void AddValue(int x, int y, bool value)
+    private void AddValue(int x, int y, int value)
     {
-        grid.SetValue(x, y, value);
+        HeatMapGridObject newGridValue = grid.GetValue(x, y).Clone();
+        newGridValue.AddValue(value);
+
+        grid.SetValue(x, y, newGridValue);
+    }
+}
+
+
+public class HeatMapGridObject : GridCellCloneable<HeatMapGridObject>
+{
+    private const int MIN = 0;
+    private const int MAX = 100;
+    public int value;
+
+    public HeatMapGridObject()
+    {
+        value = MIN;
+    }
+
+    public HeatMapGridObject(int value)
+    {
+        this.value = value;
+    }
+
+    public void AddValue(int addValue)
+    {
+        value += addValue;
+        value = Mathf.Clamp(value, MIN, MAX);
+    }
+
+    public HeatMapGridObject Clone()
+    {
+        return new HeatMapGridObject(this.value);
+    }
+
+    public float GetValueNormalize()
+    {
+        return (float)value / MAX;
+    }
+
+    public override string ToString()
+    {
+        return $"{value}";
     }
 }

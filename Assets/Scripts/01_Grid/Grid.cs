@@ -2,6 +2,7 @@ using CodeMonkey.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Grid<T>
@@ -23,6 +24,7 @@ public class Grid<T>
     public float CellSize { get; set; } = 0f;
     public Vector3 OriginPosition { get; set; } = Vector3.zero;
     public bool ShowDebug { get; set; } = false;
+    public Func<T> CreateGridObject { get; set; } = null;
 
     private Grid()
     {
@@ -65,6 +67,19 @@ public class Grid<T>
         return this;
     }
 
+    public Grid<T> WithCreateGridObject(Func<T> func)
+    {
+        CreateGridObject = func;
+        for (int x = 0; x < Width; x++)
+        {
+            for (int y = 0; y < Height; y++)
+            {
+                gridArray[x, y] = CreateGridObject();
+            }
+        }
+        return this;
+    }
+
     public Grid<T> WithDebug(bool showDebug)
     {
         this.ShowDebug = showDebug;
@@ -87,7 +102,7 @@ public class Grid<T>
         {
             for (int y = 0, h = gridArray.GetLength(1); y < h; y++)
             {
-                this.debugTextArray[x, y] = UtilsClass.CreateWorldText(gridArray[x, y].ToString(), null, GetWorldPostiton(x, y) + offset, 40, Color.white, TextAnchor.MiddleCenter, TextAlignment.Center);
+                this.debugTextArray[x, y] = UtilsClass.CreateWorldText(gridArray[x, y]?.ToString(), null, GetWorldPostiton(x, y) + offset, 40, Color.white, TextAnchor.MiddleCenter, TextAlignment.Center);
                 Debug.DrawLine(GetWorldPostiton(x, y), GetWorldPostiton(x, y + 1), Color.white, 100f);
                 Debug.DrawLine(GetWorldPostiton(x, y), GetWorldPostiton(x + 1, y), Color.white, 100f);
             }
@@ -112,6 +127,9 @@ public class Grid<T>
     {
         if (x >= 0 && x < Width && y >= 0 && y < Height)
         {
+            // https://stackoverflow.com/questions/4963160/how-to-determine-if-a-type-implements-an-interface-with-c-sharp-reflection
+            //bool isCloneable = typeof(T).GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(GridCellCloneable<>));
+            //T prevValue = isCloneable ? ((GridCellCloneable<T>)gridArray[x, y]).Clone() : gridArray[x, y];
             T prevValue = gridArray[x, y];
             gridArray[x, y] = value;
             
@@ -149,4 +167,9 @@ public class Grid<T>
         GetXY(worldPosition, out x, out y);
         return GetValue(x, y, defaultValue);
     }
+}
+
+public interface GridCellCloneable<T>
+{
+    T Clone();
 }
