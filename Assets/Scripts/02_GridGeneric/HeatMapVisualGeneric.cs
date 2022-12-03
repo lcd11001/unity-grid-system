@@ -26,7 +26,7 @@ public class HeatMapVisualGeneric : MonoBehaviour
             .WithGridSize(gridWidth, gridHeight)
             .WithCellSize(gridSize)
             .WithOriginalPosition(gridOriginal)
-            .WithCreateGridObject(() => new HeatMapGridObject())
+            .WithCreateGridObject((Grid<HeatMapGridObject>g, int x, int y) => new HeatMapGridObject(g, x, y))
             .WithDebug(true);
         grid.OnGridValueChanged += Grid_OnGridValueChanged;
 
@@ -162,39 +162,34 @@ public class HeatMapVisualGeneric : MonoBehaviour
 
     private void AddValue(int x, int y, int value)
     {
-        HeatMapGridObject newGridValue = grid.GetValue(x, y).Clone();
-        newGridValue.AddValue(value);
-
-        grid.SetValue(x, y, newGridValue);
+        HeatMapGridObject gridValue = grid.GetValue(x, y);
+        gridValue.AddValue(value);
     }
 }
 
 
-public class HeatMapGridObject : GridCellCloneable<HeatMapGridObject>
+public class HeatMapGridObject
 {
     private const int MIN = 0;
     private const int MAX = 100;
-    public int value;
+    private int value;
+    private readonly Grid<HeatMapGridObject> grid;
+    private readonly int x, y;
 
-    public HeatMapGridObject()
+    public HeatMapGridObject(Grid<HeatMapGridObject> grid, int x, int y)
     {
         value = MIN;
-    }
-
-    public HeatMapGridObject(int value)
-    {
-        this.value = value;
+        this.grid = grid;
+        this.x = x;
+        this.y = y;
     }
 
     public void AddValue(int addValue)
     {
+        int prevValue = value;
         value += addValue;
         value = Mathf.Clamp(value, MIN, MAX);
-    }
-
-    public HeatMapGridObject Clone()
-    {
-        return new HeatMapGridObject(this.value);
+        grid.TriggerValueChanged(x, y, new HeatMapGridObject(this.grid, this.x, this.y) { value = prevValue }, this);
     }
 
     public float GetValueNormalize()

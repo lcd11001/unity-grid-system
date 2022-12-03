@@ -24,7 +24,7 @@ public class Grid<T>
     public float CellSize { get; set; } = 0f;
     public Vector3 OriginPosition { get; set; } = Vector3.zero;
     public bool ShowDebug { get; set; } = false;
-    public Func<T> CreateGridObject { get; set; } = null;
+    public Func<Grid<T> /*grid*/, int /*x*/, int /*y*/, T /*result*/> CreateGridObject { get; set; } = null;
 
     private Grid()
     {
@@ -67,14 +67,14 @@ public class Grid<T>
         return this;
     }
 
-    public Grid<T> WithCreateGridObject(Func<T> func)
+    public Grid<T> WithCreateGridObject(Func<Grid<T>, int, int, T> func)
     {
         CreateGridObject = func;
         for (int x = 0; x < Width; x++)
         {
             for (int y = 0; y < Height; y++)
             {
-                gridArray[x, y] = CreateGridObject();
+                gridArray[x, y] = CreateGridObject(this, x, y);
             }
         }
         return this;
@@ -127,21 +127,9 @@ public class Grid<T>
     {
         if (x >= 0 && x < Width && y >= 0 && y < Height)
         {
-            // https://stackoverflow.com/questions/4963160/how-to-determine-if-a-type-implements-an-interface-with-c-sharp-reflection
-            //bool isCloneable = typeof(T).GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(GridCellCloneable<>));
-            //T prevValue = isCloneable ? ((GridCellCloneable<T>)gridArray[x, y]).Clone() : gridArray[x, y];
             T prevValue = gridArray[x, y];
             gridArray[x, y] = value;
-            
-            if (ShowDebug)
-            {
-                debugTextArray[x, y].text = gridArray[x, y].ToString();
-            }
-
-            if (OnGridValueChanged != null)
-            {
-                OnGridValueChanged(this, new OnGridValueChangedEventArgs { x = x, y = y, prevValue = prevValue, currValue = value });
-            }
+            TriggerValueChanged(x, y, prevValue, value);
         }
     }
 
@@ -166,6 +154,23 @@ public class Grid<T>
         int x, y;
         GetXY(worldPosition, out x, out y);
         return GetValue(x, y, defaultValue);
+    }
+
+    public void TriggerValueChanged(int x, int y, T prevValue, T value)
+    {
+        if (OnGridValueChanged != null)
+        {
+            // https://stackoverflow.com/questions/4963160/how-to-determine-if-a-type-implements-an-interface-with-c-sharp-reflection
+            //bool isCloneable = typeof(T).GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(GridCellCloneable<>));
+            //T prevValue = isCloneable ? ((GridCellCloneable<T>)gridArray[x, y]).Clone() : gridArray[x, y];
+
+            OnGridValueChanged(this, new OnGridValueChangedEventArgs { x = x, y = y, prevValue = prevValue, currValue = value });
+        }
+
+        if (ShowDebug)
+        {
+            debugTextArray[x, y].text = gridArray[x, y].ToString();
+        }
     }
 }
 
