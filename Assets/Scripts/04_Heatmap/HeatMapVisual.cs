@@ -20,7 +20,12 @@ public class HeatMapVisual : MonoBehaviour
 
     private void Awake()
     {
-        grid = new Grid<int>(gridWidth, gridHeight, gridSize, gridOriginal);
+        //grid = new Grid<int>(gridWidth, gridHeight, gridSize, gridOriginal);
+        grid = Grid<int>.CreateGrid()
+            .WithGridSize(gridWidth, gridHeight)
+            .WithCellSize(gridSize)
+            .WithOriginalPosition(gridOriginal)
+            .WithDebug(true);
         grid.OnGridValueChanged += Grid_OnGridValueChanged;
 
         mesh = new Mesh();
@@ -40,7 +45,9 @@ public class HeatMapVisual : MonoBehaviour
             Vector3 mousePos = UtilsClass.GetMouseWorldPosition();
             //int value = grid.GetValue(mousePos);
             //grid.SetValue(mousePos, Mathf.Clamp(value + 5, HEAT_MAP_MIN_VALUE, HEAT_MAP_MAX_VALUE));
-            AddValue(mousePos, 5, 5);
+
+            //AddValue(mousePos, 5, 5);
+            AddValueRange(mousePos, 100, 3, 10);
         }
     }
 
@@ -78,6 +85,47 @@ public class HeatMapVisual : MonoBehaviour
         mesh.vertices = vertices;
         mesh.uv = uvs;
         mesh.triangles = triangles;
+    }
+
+    private void AddValueRange(Vector3 worldPosition, int value, int fullValueRange, int totalRange)
+    {
+        int lowerValueAmount = Mathf.RoundToInt((float)value / (totalRange - fullValueRange));
+        grid.GetXY(worldPosition, out int originX, out int originY);
+
+        // making diamond shape
+        for (int x = 0; x < totalRange; x++)
+        {
+            for (int y = 0; y < totalRange - x; y++)
+            {
+                int radius = x + y;
+                int addValueAmount = value;
+                if (radius > fullValueRange)
+                {
+                    addValueAmount -= lowerValueAmount * (radius - fullValueRange);
+                }
+
+                // origin triangle
+                AddValue(originX + x, originY + y, addValueAmount);
+
+                if (x != 0)
+                {
+                    // mirror to left & ignore duplicate
+                    AddValue(originX - x, originY + y, addValueAmount);
+                }
+
+                if (y != 0)
+                {
+                    // mirror right-bottom & ignore duplicate
+                    AddValue(originX + x, originY - y, addValueAmount);
+
+                    if (x != 0)
+                    {
+                        // mirror left-bottom & ignore duplicate
+                        AddValue(originX - x, originY - y, addValueAmount);
+                    }
+                }
+            }
+        }
     }
 
     private void AddValue(Vector3 worldPosition, int value, int range)

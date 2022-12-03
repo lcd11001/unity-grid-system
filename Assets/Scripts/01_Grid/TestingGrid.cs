@@ -14,7 +14,12 @@ public class TestingGrid : MonoBehaviour
 
     void Start()
     {
-        grid = new Grid<int>(gridWidth, gridHeight, cellSize, originPosition);
+        //grid = new Grid<int>(gridWidth, gridHeight, cellSize, originPosition);
+        grid = Grid<int>.CreateGrid()
+            .WithGridSize(gridWidth, gridHeight)
+            .WithCellSize(cellSize)
+            .WithOriginalPosition(originPosition)
+            .WithDebug(true);
 
         grid.SetValue(2, 1, 56);
     }

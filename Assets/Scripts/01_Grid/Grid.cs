@@ -15,36 +15,74 @@ public class Grid<T>
         public T currValue;
     }
 
-    private int width, height;
-    private float cellSize;
     private T[,] gridArray;
     private TextMesh[,] debugTextArray;
-    private Vector3 originPosition;
 
-    public int Width => width;
-    public int Height => height;
-    public float CellSize => cellSize;
-    public Vector3 OriginPosition => originPosition;
+    public int Width { get; set; } = 0;
+    public int Height { get; set; } = 0;
+    public float CellSize { get; set; } = 0f;
+    public Vector3 OriginPosition { get; set; } = Vector3.zero;
     public bool ShowDebug { get; set; } = false;
 
-    public Grid(int width, int height, float cellSize, Vector3 originPosition)
+    private Grid()
     {
-        this.width = width;
-        this.height = height;
-        this.cellSize = cellSize;
-        this.originPosition = originPosition;
-        this.gridArray = new T[width, height];
 
-        if (ShowDebug)
+    }
+
+    //public Grid(int width, int height, float cellSize, Vector3 originPosition)
+    //{
+    //    this.Width = width;
+    //    this.Height = height;
+    //    this.CellSize = cellSize;
+    //    this.OriginPosition = originPosition;
+    //    this.gridArray = new T[width, height];
+
+    //    if (ShowDebug)
+    //    {
+    //        this.debugTextArray = new TextMesh[width, height];
+    //        DebugGrid();
+    //    }
+    //}
+
+    public Grid<T> WithGridSize(int width, int height)
+    {
+        this.Width = width;
+        this.Height = height;
+        this.gridArray = new T[width, height];
+        this.debugTextArray = new TextMesh[width, height];
+        return this;
+    }
+
+    public Grid<T> WithCellSize(float cellSize)
+    {
+        this.CellSize = cellSize;
+        return this;
+    }
+
+    public Grid<T> WithOriginalPosition(Vector3 originalPosition)
+    {
+        this.OriginPosition = originalPosition;
+        return this;
+    }
+
+    public Grid<T> WithDebug(bool showDebug)
+    {
+        this.ShowDebug = showDebug;
+        if (showDebug)
         {
-            this.debugTextArray = new TextMesh[width, height];
             DebugGrid();
         }
+        return this;
+    }
+
+    public static Grid<T> CreateGrid()
+    {
+        return new Grid<T>();
     }
 
     public virtual void DebugGrid()
     {
-        Vector3 offset = new Vector3(cellSize, cellSize) * 0.5f;
+        Vector3 offset = new Vector3(CellSize, CellSize) * 0.5f;
         for (int x = 0, w = gridArray.GetLength(0); x < w; x++)
         {
             for (int y = 0, h = gridArray.GetLength(1); y < h; y++)
@@ -55,24 +93,24 @@ public class Grid<T>
             }
         }
 
-        Debug.DrawLine(GetWorldPostiton(0, height), GetWorldPostiton(width, height), Color.white, 100f);
-        Debug.DrawLine(GetWorldPostiton(width, 0), GetWorldPostiton(width, height), Color.white, 100f);
+        Debug.DrawLine(GetWorldPostiton(0, Height), GetWorldPostiton(Width, Height), Color.white, 100f);
+        Debug.DrawLine(GetWorldPostiton(Width, 0), GetWorldPostiton(Width, Height), Color.white, 100f);
     }
 
     public Vector3 GetWorldPostiton(int x, int y)
     {
-        return new Vector3(x, y) * this.cellSize + originPosition;
+        return new Vector3(x, y) * this.CellSize + this.OriginPosition;
     }
 
     public void GetXY(Vector3 worldPosition, out int x, out int y)
     {
-        x = Mathf.FloorToInt((worldPosition - originPosition).x / cellSize);
-        y = Mathf.FloorToInt((worldPosition - originPosition).y / cellSize);
+        x = Mathf.FloorToInt((worldPosition - OriginPosition).x / CellSize);
+        y = Mathf.FloorToInt((worldPosition - OriginPosition).y / CellSize);
     }
 
     public void SetValue(int x, int y, T value)
     {
-        if (x >= 0 && x < width && y >= 0 && y < height)
+        if (x >= 0 && x < Width && y >= 0 && y < Height)
         {
             T prevValue = gridArray[x, y];
             gridArray[x, y] = value;
@@ -98,7 +136,7 @@ public class Grid<T>
 
     public T GetValue(int x, int y, T defaultValue = default(T))
     {
-        if (x >= 0 && x < width && y >= 0 && y < height)
+        if (x >= 0 && x < Width && y >= 0 && y < Height)
         {
             return gridArray[x, y];
         }
